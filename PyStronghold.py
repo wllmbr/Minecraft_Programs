@@ -96,33 +96,39 @@ class Stronghold:
 						wrongAim = True
 					if deltaY2 > 0:
 						wrongAim = True
-						   
+			   
+				confidence = 0
 				if(wrongAim):
 					print "WARNING! Points ",
 					print self.vectors[i],
 					print self.vectors[j],
 					print " aim at two different strongholds."
-					
-				d1 = math.sqrt((deltaX1 * deltaX1) + (deltaY1 * deltaY1))
-				d2 = math.sqrt((deltaX2 * deltaX2) + (deltaY2 * deltaY2))
-				#Angle Variance is 0.6 degrees, taken from how much of an angle variance can be seen when looking at a thrown Eye of Ender
-				#Second term comes from the angle between the vectors. If it is too tight, the value is likely wrong
-				variance = 0.6 * (math.pi/180)
-				SA = (4.0 * variance * variance * d1 * d2)
-				AngleCompensation = math.sin(self.vectors[i][3] - self.vectors[j][3])
-				confidence = abs(9.0 * AngleCompensation / SA)
+				else:
+					d1 = math.sqrt((deltaX1 * deltaX1) + (deltaY1 * deltaY1))
+					d2 = math.sqrt((deltaX2 * deltaX2) + (deltaY2 * deltaY2))
+					#Angle Variance is 0.6 degrees, taken from how much of an angle variance can be seen when looking at a thrown Eye of Ender
+					#The SA is approx the total area encompassed by the variance.
+					#165/SA was chosen because 165 is the area of the Portal room (including the walls).
+					#However, if a world is exited and reloaded, the Eyes no longer point to the Portal room. Instead they point to the first
+					#stair case that is generated. 
+					variance = 0.6 * (math.pi/180)
+					SA = (4.0 * variance * variance * d1 * d2)
+					AngleCompensation = math.sin(self.vectors[i][3] - self.vectors[j][3])
+					confidence = abs(165 * AngleCompensation / SA)
 				guess = [gx,gy,confidence, SA, AngleCompensation]
 				self.guesses.append(guess)
+			
 		
 		highPoint = self.guesses[0]
 		#Find highest confidence rating
 		for i in range (1,len(self.guesses)):
-			print self.guesses[i]
+			#print self.guesses[i]
 			curPoint = self.guesses[i]
 			if (curPoint[2] > highPoint[2]):
 				highPoint = curPoint
-		
-		print "Best guess is at coordinates %.0f = X, %.0f = Z. Confidence rating: %0.2f%%. SA = %.0f, AC = %0.5f" % (highPoint[0],highPoint[1],highPoint[2],highPoint[3],highPoint[4])
+				
+		print "Best guess is at coordinates %.0f = X, %.0f = Z. Confidence rating: %0.2f%%." % (highPoint[0],highPoint[1],highPoint[2])
+		#print "Best guess is at coordinates %.0f = X, %.0f = Z. Confidence rating: %0.2f%%. SA = %.0f, AC = %0.5f" % (highPoint[0],highPoint[1],highPoint[2],highPoint[3],highPoint[4])
 			
 				
 def promptMode():
